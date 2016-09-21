@@ -11,6 +11,7 @@ import UIKit
 class AnxietyCheckController: BaseController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var resultView: UIView!
     
     private let questions = ["我感到紧张或痛苦",
                              "我对以往感兴趣的事情还是感兴趣",
@@ -29,13 +30,13 @@ class AnxietyCheckController: BaseController, UITableViewDelegate, UITableViewDa
     
     private let selections = ["A.几乎所有时候", "B.大多时候", "C.有时", "D.根本没有"]
     
-    private var answers: [Int: Bool] = [Int: Bool]()
+    private var answers: [Int: Int] = [Int: Int]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         for i in 0 ..< self.questions.count {
-            self.answers[i] = false
+            self.answers[i] = -1
         }
         
         self.tableView.register(UINib(nibName: "SelectionCell", bundle: nil), forCellReuseIdentifier: "Cell")
@@ -78,6 +79,10 @@ class AnxietyCheckController: BaseController, UITableViewDelegate, UITableViewDa
         return 0.0
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 44.0
+    }
+    
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if section < self.questions.count {
             if let header = Bundle.main.loadNibNamed("SelectionHeader", owner: nil, options: nil)?[0] as? SelectionHeader {
@@ -93,7 +98,7 @@ class AnxietyCheckController: BaseController, UITableViewDelegate, UITableViewDa
         if indexPath.section < self.questions.count {
             let cell = tableView.dequeueReusableCell(withIdentifier: "Cell") as! SelectionCell
             cell.selectionLabel.text = self.selections[indexPath.row]
-            cell.isChecked = self.answers[indexPath.section]!
+            cell.isChecked = self.answers[indexPath.section] == indexPath.row
             return cell
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: "FooterCell") as! SelectionFooterCell
@@ -104,12 +109,24 @@ class AnxietyCheckController: BaseController, UITableViewDelegate, UITableViewDa
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        self.answers[indexPath.section]! = !self.answers[indexPath.section]!
-        let cell = tableView.cellForRow(at: indexPath) as! SelectionCell
-        cell.isChecked = self.answers[indexPath.section]!
+        self.answers[indexPath.section]! = indexPath.row
+        tableView.reloadData()
     }
     
+    // MARK: action
     func submit(_ sender: UIButton) {
-        
+        self.resultView.isHidden = false
+        UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseIn, animations: {
+            self.resultView.alpha = 1.0
+            }, completion: nil)
     }
+    
+    @IBAction func closeResult(_ sender: UIButton) {
+        UIView.animate(withDuration: 0.2, delay: 0.0, options: .curveEaseIn, animations: {
+            self.resultView.alpha = 0.0
+            }) { (result) in
+                self.resultView.isHidden = true
+        }
+    }
+    
 }
